@@ -1,129 +1,191 @@
 #!/usr/bin/python3
-"""
-testing rectangle
-"""
+"""Test for Square"""
 
+import os
 import unittest
-import json
-#from models.rectangle import Rectangle
+from io import StringIO
+from unittest.mock import patch
+
+from models.base import Base
 from models.square import Square
 
+
 class TestSquare(unittest.TestCase):
-    """
-    doc
-    """
-    def test_square(self):
-        """
-        doc
-        """
-        r1 = Square(1)
-        r2 = Square(1,2)
-        r3 = Square(1,2,3)
-        self.assertEqual(r1.size, 1)
-        self.assertEqual(r2.x, 2)
-        self.assertEqual(r3.y, 3)
-        #self.assertEqual(r3.y, 4)
+    """Test for class Square"""
 
-    def test_square_args(self):
-        """
-        doc
-        """
-        self.assertRaises(TypeError, Square, "1")
-        #self.assertRaises(TypeError, Rectangle, 1, "2")
-        self.assertRaises(TypeError, Square, 1,"4")
-        self.assertRaises(TypeError, Square, 1, 2, "3")
-        self.assertRaises(ValueError, Square, 1, 2, -6,)
-        self.assertRaises(ValueError, Square, 1, -3,4)
-        self.assertRaises(ValueError, Square, -2,3,4)
-        #self.assertRaises(ValueError,Rectangle, -1,2,3,4)
-        self.assertEqual(Square(1,2,3,5).id, 5)
-        self.assertRaises(ValueError, Square, 0, )
-        #self.assertRaises(ValueError, Rectangle,1, 0)
+    def test_instance(self):
+        """Doc"""
+        s = Square(1)
+        s1 = Square(1, 2)
+        s2 = Square(1, 2, 3)
+        s12 = Square(1, 0)
+        s0 = Square(1, 2, 3, 4)
 
-    def test_methods(self):
-        """
-        doc
-        """
-        r2 = Square(2, id=24)
-        self.assertEqual(r2.area(), 4)
-        self.assertEqual(r2.__str__(), "[Square] (24) 0/0 - 2")
+        self.assertEqual(s0.id, 4)
 
-    def test_methods_update(self):
-        """
-        doc
-        """
-        r = Square(10, id=12)
-        r.update(1)
-        self.assertNotEqual(r.id, 12)
-        r.update(1,2)
-        self.assertNotEqual(r.size, 10)
-        #r.update(1,2,3)
-        #self.assertNotEqual(r.height, 12)
-        r.update(1,2,3)
-        self.assertNotEqual(r.x, 0)
-        r.update(1,2,3,4)
-        self.assertNotEqual(r.y, 0)
-        #passing now a dict to update
-        self.assertNotEqual(r.id, r.update(**{"id": 89}))
-        self.assertNotEqual(r.width, r.update(**{"id": 89, "size": 3}))
-        #self.assertNotEqual(r.height, r.update(**{"id": 89, "size": 4, "height": 21}))
-        self.assertNotEqual(r.x, r.update(**{"id": 89, "width": 4, "x": 3}))
-        self.assertNotEqual(r.y, r.update(**{"id": 89, "width": 4, "x": 3, "y": 6}))
+        with self.assertRaisesRegex(ValueError, "width must be > 0"):
+            s9 = Square(-1, 2)
 
-    def test_to_dict(self):
-        """
-        doc
-        """
-        r = Square(1, id=12)
-        self.assertEqual(r.to_dictionary(), {"id": 12, "x": 0, "y": 0, "size": 1})
+        with self.assertRaisesRegex(ValueError, "x must be >= 0"):
+            s10 = Square(1, -2)
 
+        with self.assertRaisesRegex(ValueError, "width must be > 0"):
+            s11 = Square(0, 2)
+
+        with self.assertRaisesRegex(ValueError, "y must be >= 0"):
+            s13 = Square(1, 2, -3)
+
+        with self.assertRaisesRegex(ValueError, "width must be > 0"):
+            s = Square(0)
+
+        with self.assertRaisesRegex(TypeError, "width must be an integer"):
+            s4 = Square("1")
+
+        with self.assertRaisesRegex(TypeError, "x must be an integer"):
+            s5 = Square(1, "2")
+
+        with self.assertRaisesRegex(TypeError, "y must be an integer"):
+            s6 = Square(1, 2, "3")
+
+    def test_area(self):
+        """Doc"""
+        s1 = Square(2)
+        self.assertEqual(s1.area(), 4)
+
+    def test__str__(self):
+        """Doc"""
+        Base._Base__nb_objects = 0
+        s1 = Square(2)
+        with patch("sys.stdout", new=StringIO()) as seriously:
+            print(s1)
+            self.assertEqual(seriously.getvalue(),
+                             "[Square] (1) 0/0 - 2\n")
+
+    def test_display(self):
+        """Doc"""
+        s1 = Square(2)
+        s2 = Square(2, 2, 3)
+        with patch("sys.stdout", new=StringIO()) as seriously:
+            s1.display()
+            self.assertEqual(seriously.getvalue(),
+                             "##\n##\n")
+        with patch("sys.stdout", new=StringIO()) as seriously:
+            s2.display()
+            self.assertEqual(seriously.getvalue(),
+                             "\n\n\n  ##\n  ##\n")
+
+    def test_to_dictionary(self):
+        """Doc"""
+        Base._Base__nb_objects = 0
+        s1 = Square(4)
+        self.assertEqual(s1.to_dictionary(),
+                         {'id': 1, 'size': 4, 'x': 0, 'y': 0})
+
+    def test_update(self):
+        """Doc"""
+        Base._Base__nb_objects = 0
+        s1 = Square(2)
+        s1.update()
+        self.assertEqual(s1.id, 1)
+
+        s1.update(89)
+        self.assertEqual(s1.id, 89)
+
+        s1.update(89, 1)
+        self.assertEqual(s1.id, 89)
+        self.assertEqual(s1.size, 1)
+
+        s1.update(89, 1, 2)
+        self.assertEqual(s1.id, 89)
+        self.assertEqual(s1.size, 1)
+        self.assertEqual(s1.x, 2)
+
+        s1.update(89, 1, 2, 3)
+        self.assertEqual(s1.id, 89)
+        self.assertEqual(s1.size, 1)
+        self.assertEqual(s1.x, 2)
+        self.assertEqual(s1.y, 3)
+
+        s1.update(**{'id': 89})
+        self.assertEqual(s1.id, 89)
+
+        s1.update(**{'id': 89, 'size': 1})
+        self.assertEqual(s1.id, 89)
+        self.assertEqual(s1.size, 1)
+
+        s1.update(**{'id': 89, 'size': 1, 'x': 2})
+        self.assertEqual(s1.id, 89)
+        self.assertEqual(s1.size, 1)
+        self.assertEqual(s1.x, 2)
+
+        s1.update(**{'id': 89, 'size': 1, 'x': 2, 'y': 3})
+        self.assertEqual(s1.id, 89)
+        self.assertEqual(s1.size, 1)
+        self.assertEqual(s1.x, 2)
+        self.assertEqual(s1.y, 3)
 
     def test_create(self):
-        """
-        doc
-        """
-        r = Square.create(**{"id": 23})
-        self.assertEqual(r.id, 23)
-        r = Square.create(**{"id": 23, "size": 2})
-        self.assertEqual(r.size, 2)
-        #r = Rectangle.create(**{"id": 23, "width": 2, "height": 3})
-        #self.assertEqual(r.height, 3)
-        r = Square.create(**{"id":23, "size": 2, "x": 2})
-        self.assertEqual(r.x, 2)
-        r = Square.create(**{"id":23, "size": 2, "x": 2, "y": 4})
-        self.assertEqual(r.y, 4)
+        """Doc"""
+
+        s1 = Square.create(**{'id': 89})
+        self.assertEqual(s1.id, 89)
+
+        s1 = Square.create(**{'id': 89, 'size': 1})
+        self.assertEqual(s1.id, 89)
+        self.assertEqual(s1.size, 1)
+
+        s1 = Square.create(**{'id': 89, 'size': 1, 'x': 2})
+        self.assertEqual(s1.id, 89)
+        self.assertEqual(s1.size, 1)
+        self.assertEqual(s1.x, 2)
+
+        s1 = Square.create(**{'id': 89, 'size': 1,
+                              'x': 2, 'y': 3})
+        self.assertEqual(s1.id, 89)
+        self.assertEqual(s1.size, 1)
+        self.assertEqual(s1.x, 2)
+        self.assertEqual(s1.y, 3)
+
+        s1 = Square.create(**{'id': 89, 'size': 1,
+                              'x': 2, 'y': 3})
+        self.assertEqual(s1.id, 89)
+        self.assertEqual(s1.size, 1)
+        self.assertEqual(s1.x, 2)
+        self.assertEqual(s1.y, 3)
 
     def test_save_to_file(self):
-        """
-        doc
-        """
-        r = Square(1, id=23)
+        """Doc"""
+        Base._Base__nb_objects = 0
+
         Square.save_to_file(None)
-        with open("Square.json") as f:
-            cont = f.read()
-            self.assertEqual(cont, '[]')
+        self.assertTrue(os.path.isfile("Square.json"))
+        with open("Square.json") as file:
+            self.assertEqual(file.read(), '[]')
+
         Square.save_to_file([])
-        with open("Square.json")as f:
-            content = f.read()
-            self.assertEqual(content, '[]')
-        Square.save_to_file([r])
-        with open("Square.json", "r") as f:
-            content = f.read()
-            self.assertEqual(content, '[{"size": 1, "x": 0, "y": 0, "id": 23}]')
+        with open("Square.json") as file:
+            self.assertEqual(file.read(), '[]')
+            self.assertEqual(type(file.read()), str)
+
+        Square.save_to_file([Square(1)])
+        with open("Square.json") as file:
+            self.assertEqual(file.read(),
+                             '[{"id": 1, "size": 1, "x": 0, "y": 0}]')
+
+    def test_save_to_file_empty(self):
+        Square.save_to_file([])
+        self.assertTrue(os.path.isfile("Square.json"))
+        with open("Square.json") as file:
+            self.assertEqual(file.read(), "[]")
+            self.assertEqual(type(file.read()), str)
 
     def test_load_from_file(self):
-        """
-        doc
-        """
-        Square.save_to_file([])
-        my_list = Square.load_from_file()
-        self.assertEqual(my_list, [])
+        """Doc"""
+        if os.path.exists("Square.json"):
+            os.remove("Square.json")
 
-    def test_load_from_file2(self):
-        """
-        doc
-        """
-        r = Square(2)
-        Square.save_to_file([r])
-        my_list = Square.load_from_file()
-        self.assertEqual(type(my_list[0]), type(Square.create(**r.to_dictionary())))
+        self.assertEqual(Square.load_from_file(), [])
+        Square.save_to_file([Square(2)])
+        from_file = Square.load_from_file()
+        self.assertEqual(type(from_file), list)
+        self.assertEqual(from_file[0].size, 2)
